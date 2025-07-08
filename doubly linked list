@@ -1,0 +1,188 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#define MAX_LEN 50
+struct Node {
+    char data[MAX_LEN];
+    struct Node* prev;
+    struct Node* next;
+};
+struct Node* head = NULL;
+struct Node* tail = NULL;
+struct Node* createNode(const char* str) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    if (!newNode) {
+        printf("Memory allocation failed\n");
+        exit(1);
+    }
+    strncpy(newNode->data, str, MAX_LEN);
+    newNode->data[MAX_LEN - 1] = '\0';
+    newNode->prev = NULL;
+    newNode->next = NULL;
+    return newNode;
+}
+void insertAtBeginning(const char* str) {
+    struct Node* newNode = createNode(str);
+    if (head == NULL) {
+        head = tail = newNode;
+    } else {
+        newNode->next = head;
+        head->prev = newNode;
+        head = newNode;
+    }
+    printf("\"%s\" inserted at beginning.\n", str);
+}
+void insertAtEnd(const char* str) {
+    struct Node* newNode = createNode(str);
+    if (tail == NULL) {
+        head = tail = newNode;
+    } else {
+        tail->next = newNode;
+        newNode->prev = tail;
+        tail = newNode;
+    }
+    printf("\"%s\" inserted at end.\n", str);
+}
+void insertAtPosition(const char* str, int pos) {
+    if (pos <= 1) {
+        insertAtBeginning(str);
+        return;
+    }
+    struct Node* temp = head;
+    int count = 1;
+    while (temp != NULL && count < pos - 1) {
+        temp = temp->next;
+        count++;
+    }
+    if (temp == NULL || temp->next == NULL) {
+        insertAtEnd(str);
+        return;
+    }
+    struct Node* newNode = createNode(str);
+    newNode->next = temp->next;
+    newNode->prev = temp;
+    temp->next->prev = newNode;
+    temp->next = newNode;
+    printf("\"%s\" inserted at position %d.\n", str, pos);
+}
+void deleteFromBeginning() {
+    if (head == NULL) {
+        printf("List is empty. Nothing to delete.\n");
+        return;
+    }
+    struct Node* temp = head;
+    printf("\"%s\" deleted from beginning.\n", temp->data);
+    head = head->next;
+    if (head != NULL) {
+        head->prev = NULL;
+    } else {
+        tail = NULL;
+    }
+    free(temp);
+}
+void deleteByValue(const char* str) {
+    struct Node* temp = head;
+    while (temp != NULL) {
+        if (strcmp(temp->data, str) == 0) {
+            if (temp == head) {
+                head = temp->next;
+                if (head)
+                    head->prev = NULL;
+                else
+                    tail = NULL;
+            }
+            else if (temp == tail) {
+                tail = temp->prev;
+                if (tail)
+                    tail->next = NULL;
+                else
+                    head = NULL;
+            }
+            else {
+                temp->prev->next = temp->next;
+                temp->next->prev = temp->prev;
+            }
+            printf("\"%s\" deleted from list.\n", str);
+            free(temp);
+            return;
+        }
+        temp = temp->next;
+    }
+    printf("Item \"%s\" not found for deletion.\n", str);
+}
+void deleteByPosition(int pos) {
+    if (head == NULL) {
+        printf("List is empty. Nothing to delete.\n");
+        return;
+    }
+    if (pos <= 1) {
+        deleteFromBeginning();
+        return;
+    }
+    struct Node* temp = head;
+    int count = 1;
+    while (temp != NULL && count < pos) {
+        temp = temp->next;
+        count++;
+    }
+    if (temp == NULL) {
+        printf("Position %d does not exist.\n", pos);
+        return;
+    }
+    if (temp == tail) {
+        tail = temp->prev;
+        tail->next = NULL;
+    }
+    else {
+        temp->prev->next = temp->next;
+        temp->next->prev = temp->prev;
+    }
+    printf("Item \"%s\" deleted from position %d.\n", temp->data, pos);
+    free(temp);
+}
+void searchItem(const char* str) {
+    struct Node* temp = head;
+    int pos = 1;
+    while (temp != NULL) {
+        if (strcmp(temp->data, str) == 0) {
+            printf("Item \"%s\" found at position %d.\n", str, pos);
+            return;
+        }
+        temp = temp->next;
+        pos++;
+    }
+    printf("Item \"%s\" not found.\n", str);
+}
+void displayList() {
+    if (head == NULL) {
+        printf("List is empty.\n");
+        return;
+    }
+    printf("List items: ");
+    struct Node* temp = head;
+    while (temp != NULL) {
+        printf("\"%s\" ", temp->data);
+        temp = temp->next;
+    }
+    printf("\n");
+}
+int main() {
+    insertAtEnd("chocolate");
+    insertAtEnd("biscuit");
+    insertAtEnd("cake");
+    insertAtEnd("brownie");
+    insertAtEnd("ice cream");
+    displayList();
+    insertAtBeginning("coffee");
+    insertAtEnd("chicken briyani");
+    insertAtPosition("parota", 3);
+    displayList();
+    deleteByValue("cake");
+    deleteByValue("brownie");
+    displayList();
+    deleteByPosition(2);
+    displayList();
+    searchItem("ice cream");
+    searchItem("cake");
+    return 0;
+}
